@@ -1,0 +1,71 @@
+# Full local dev stack (Deliverable 1). Brings up:
+#   - osrm:          self-hosted distance-matrix/routing engine (Section 7)
+#   - mosquitto:     MQTT broker for the IoT/telemetry layer (Section 7)
+#   - beckn-mock:    local ONDC/Beckn registry mock (Section 7)
+#   - backend:       FastAPI app (mathematical core + all layers wired, Sections 1-8)
+#   - frontend:      React + Leaflet UI (Chaos Mode, Algorithm Arena, dashboards, Section 5)
+#
+# Run: docker compose up --build
+# Then open http://localhost:5173
+
+services:
+  osrm:
+    image: osrm/osrm-backend:latest
+    # NOTE: OSRM needs a pre-processed .osrm dataset for your target city
+    # (osrm-extract + osrm-partition + osrm-customize on a .osm.pbf file).
+    # Placeholder mount point below; see RUN_INSTRUCTIONS_WINDOWS.md for the
+    # one-time extract command. The router falls back to haversine
+    # distances automatically (app/graph/osrm_client.py) if this container
+    # isn't serving a dataset yet, so the rest of the stack still runs.
+    volumes:
+      - ./data/osrm:/data
+    ports:
+      - "5000:5000"
+    command: ["osrm-routed", "--algorithm", "mld", "/data/southern-zone-260903.osrm"]
+    restart: unless-stopped
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    ports:
+      - "1883:1883"
+    restart: unless-stopped
+
+  beckn-mock:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: ["uvicorn", "app.integrations.beckn_mock_server:app", "--host", "0.0.0.0", "--port", "6000"]
+    ports:
+      - "6000:6000"
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - MQTT_HOST=mosquitto
+      - MQTT_PORT=1883
+      - BECKN_BASE_URL=http://beckn-mock:6000
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - GROQ_MODEL=${GROQ_MODEL:-llama-3.3-70b-versatile}
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mosquitto
+      - beckn-mock
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    restart: unless-stopped

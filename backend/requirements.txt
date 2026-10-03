@@ -1,0 +1,27 @@
+# Core optimizer
+numpy>=1.26
+networkx>=3.2
+
+# Backend / API
+fastapi>=0.111
+uvicorn[standard]>=0.30
+pydantic>=2.7
+httpx>=0.27
+websockets>=12.0
+
+# Graph / routing
+osmnx>=1.9
+
+# Predictive layer (ST-GNN) -- plain PyTorch, no PyG required (see
+# app/forecasting/stgnn.py for the drop-in PyG swap point)
+torch>=2.2
+
+# IoT / integrations
+paho-mqtt>=1.6
+groq>=0.9
+
+# Benchmarking
+psutil>=5.9
+
+# Dev / testing
+pytest>=8.0

@@ -1,0 +1,609 @@
+/* ============================================================
+   Design system — "Silver Pine"
+   Restrained dark UI: graphite surfaces, silver/gray text,
+   deep pine green as the single primary accent, deep wine as
+   the critical accent. Amber kept only for triage semantics.
+   ============================================================ */
+
+:root {
+  /* Surfaces */
+  --bg-base: #0a0b0d;
+  --bg-surface: #141519;
+  --bg-surface-raised: #1b1d22;
+  --bg-surface-hover: #24262c;
+  --bg-inset: #0e0f12;
+
+  /* Borders */
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-default: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.22);
+
+  /* Text */
+  --text-primary: #f1f0ec;
+  --text-secondary: #b9b8b4;
+  --text-tertiary: #83827e;
+  --text-disabled: #55565b;
+
+  /* Silver Pine palette accents */
+  --silver: #d8d7d3;
+  --gray: #8f8e8a;
+  --pine: #1f5c45;
+  --pine-bright: #3a8f6b;
+  --pine-wash: rgba(58, 143, 107, 0.12);
+  --wine: #5c2530;
+  --wine-bright: #a34456;
+  --wine-wash: rgba(163, 68, 86, 0.14);
+  --amber: #c08a3e;
+  --amber-wash: rgba(192, 138, 62, 0.14);
+
+  /* Triage semantics (functional, not decorative) */
+  --triage-critical: var(--wine-bright);
+  --triage-urgent: var(--amber);
+  --triage-standard: var(--pine-bright);
+  --triage-non-urgent: var(--text-tertiary);
+
+  --radius: 8px;
+  --radius-sm: 5px;
+  --mono: "SF Mono", "Cascadia Code", ui-monospace, "Consolas", monospace;
+  --sans: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --display: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+
+  /* Type scale */
+  --text-display: 34px;
+  --text-h1: 20px;
+  --text-h2: 15px;
+  --text-body: 13.5px;
+  --text-small: 12px;
+  --text-micro: 11px;
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+::selection { background: var(--pine-wash); color: var(--text-primary); }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gray); }
+
+/* ---------- entrance motion ---------- */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.99); filter: blur(4px); }
+  to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes shell-glide {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.app-shell { animation: fade-in 0.6s var(--ease); }
+.app-header { animation: shell-glide 0.55s var(--ease) both; }
+.tabs { animation: shell-glide 0.55s var(--ease) both; animation-delay: 0.06s; }
+.main-area > * {
+  animation: rise-in 0.6s var(--ease) both;
+  animation-delay: 0.12s;
+}
+
+/* Scroll-reveal: elements start hidden and rise in once .reveal-in is toggled
+   on by IntersectionObserver (see useReveal.js). Stagger via transitionDelay. */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px) scale(0.985);
+  filter: blur(3px);
+  transition: opacity 0.7s var(--ease), transform 0.7s var(--ease), filter 0.7s var(--ease);
+  will-change: opacity, transform;
+}
+.reveal-in {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+}
+
+/* Staggered list-item entrance, driven by an --i custom property per item. */
+@keyframes item-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.stagger-item {
+  animation: item-in 0.45s var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+/* Sliding tab underline */
+@keyframes tab-pulse {
+  0% { box-shadow: 0 0 0 0 var(--pine-wash); }
+  70% { box-shadow: 0 0 0 6px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001s !important; transition-duration: 0.001s !important; }
+  .reveal { opacity: 1; transform: none; filter: none; }
+}
+
+/* ---------- map tile treatment (Uber-style muted dark basemap from
+   plain OSM tiles, no API key required) ---------- */
+.map-tiles-dark {
+  filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9) saturate(0.6);
+}
+
+/* ---------- shell ---------- */
+.app-shell {
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  height: 100vh;
+}
+.app-shell-docked { grid-template-rows: auto 1fr; }
+.main-area-docked { padding-bottom: 104px; }
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 32px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-base);
+}
+
+.app-header .brand {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.app-header .title {
+  font-family: var(--display);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+  line-height: 1.15;
+}
+
+.app-header .subtitle {
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  letter-spacing: 0.005em;
+}
+
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  padding: 7px 12px;
+  border: 1px solid var(--border-default);
+  border-radius: 100px;
+}
+
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--wine-bright); }
+.status-dot.connected { background: var(--pine-bright); box-shadow: 0 0 0 3px var(--pine-wash); }
+
+.fleet-select {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+/* ---------- tabs ---------- */
+.tabs {
+  display: flex;
+  gap: 4px;
+  padding: 0 32px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-base);
+}
+
+.tab-btn {
+  position: relative;
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  font-family: var(--sans);
+  font-size: 13.5px;
+  font-weight: 500;
+  padding: 13px 16px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s var(--ease), border-color 0.25s var(--ease), transform 0.15s var(--ease);
+}
+
+.tab-btn.active { color: var(--text-primary); border-bottom-color: var(--pine-bright); font-weight: 600; }
+.tab-btn:hover:not(.active) { color: var(--text-secondary); transform: translateY(-1px); }
+.tab-btn:active { transform: translateY(0) scale(0.98); }
+.tab-btn:focus-visible { outline: 2px solid var(--pine-bright); outline-offset: -2px; border-radius: var(--radius-sm); }
+.tab-btn.active::after {
+  content: "";
+  position: absolute;
+  left: 16px; right: 16px; bottom: -1px;
+  height: 2px;
+  background: var(--pine-bright);
+  box-shadow: 0 0 8px var(--pine-bright);
+  animation: tab-underline-in 0.3s var(--ease);
+}
+@keyframes tab-underline-in {
+  from { transform: scaleX(0.3); opacity: 0.4; }
+  to { transform: scaleX(1); opacity: 1; }
+}
+
+.main-area { overflow: auto; padding: 28px 32px 48px; background: var(--bg-base); }
+
+/* ---------- panels ---------- */
+.panel {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  padding: 24px;
+  transition: border-color 0.25s var(--ease);
+}
+
+/* Site-wide spotlight border: a single delegated mousemove listener (see
+   App.jsx) sets --spot-x/--spot-y per hovered .panel/.arena-card; pure CSS
+   does the rest, so it applies everywhere with zero per-component wiring. */
+.panel::before,
+.arena-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(220px circle at var(--spot-x, -500px) var(--spot-y, -500px), var(--pine-wash), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.35s var(--ease);
+  pointer-events: none;
+  z-index: 0;
+}
+.panel:hover::before,
+.arena-card:hover::before { opacity: 1; }
+.panel > * { position: relative; z-index: 1; }
+
+.panel + .panel { margin-top: 16px; }
+.panel-accent { border-left: 2px solid var(--pine-bright); }
+.panel-accent-wine { border-left: 2px solid var(--wine-bright); }
+
+/* Vertical content flow — replaces side-by-side two-panel dashboards.
+   Sections stack full-width and reveal in one at a time while scrolling. */
+.section-stack { display: flex; flex-direction: column; gap: 20px; }
+.section-stack > .panel { margin-top: 0; }
+
+.panel-title {
+  font-family: var(--display);
+  font-size: var(--text-h2);
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  color: var(--text-primary);
+  margin: 0 0 16px 0;
+}
+
+.panel-lede {
+  font-size: var(--text-small);
+  color: var(--text-tertiary);
+  margin: 3px 0 0 0;
+  line-height: 1.5;
+}
+
+.grid-2 { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; align-items: start; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+@media (max-width: 900px) {
+  .grid-2, .grid-3, .stat-row { grid-template-columns: 1fr; }
+}
+
+.map-wrap { height: 62vh; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border-default); }
+
+/* ---------- toolbars / buttons ---------- */
+.hazard-toolbar { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+
+.hazard-btn {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background: var(--bg-surface-raised);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s var(--ease), border-color 0.15s var(--ease), color 0.15s var(--ease);
+}
+.hazard-btn:hover:not(:disabled) { background: var(--bg-surface-hover); color: var(--text-primary); border-color: var(--border-strong); }
+.hazard-btn.active { color: var(--text-primary); background: var(--pine-wash); border-color: var(--pine-bright); }
+.hazard-btn:focus-visible { outline: 2px solid var(--pine-bright); outline-offset: 1px; }
+.hazard-btn:disabled { opacity: 0.45; cursor: default; }
+
+.route-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 9px 12px; border-radius: var(--radius-sm); font-size: 12.5px;
+  border: 1px solid var(--border-subtle); margin-bottom: 6px;
+  background: var(--bg-surface-raised);
+  color: var(--text-primary);
+  font-family: var(--mono);
+  transition: border-color 0.2s var(--ease), transform 0.2s var(--ease), background 0.2s var(--ease);
+}
+.route-row:hover { border-color: var(--border-strong); background: var(--bg-surface-hover); transform: translateX(2px); }
+
+.badge {
+  font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: var(--radius-sm); font-family: var(--sans);
+  letter-spacing: 0.01em;
+}
+.badge.critical { background: var(--wine-wash); color: var(--wine-bright); border: 1px solid var(--wine-bright); }
+.badge.urgent { background: var(--amber-wash); color: var(--amber); border: 1px solid var(--amber); }
+.badge.standard { background: var(--pine-wash); color: var(--pine-bright); border: 1px solid var(--pine-bright); }
+
+.btn-primary {
+  background: var(--pine);
+  color: var(--text-primary);
+  border: 1px solid var(--pine-bright);
+  border-radius: var(--radius-sm);
+  height: 34px;
+  padding: 0 16px;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s var(--ease), transform 0.1s var(--ease);
+}
+.btn-primary:hover:not(:disabled) { background: var(--pine-bright); }
+.btn-primary:active:not(:disabled) { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.45; cursor: default; }
+.btn-primary:focus-visible { outline: 2px solid var(--pine-bright); outline-offset: 2px; }
+
+.btn-secondary {
+  background: var(--bg-surface-raised);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  height: 34px;
+  padding: 0 14px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
+}
+.btn-secondary:hover:not(:disabled) { background: var(--bg-surface-hover); border-color: var(--border-strong); }
+.btn-secondary:disabled { opacity: 0.45; cursor: default; }
+.btn-secondary:focus-visible { outline: 2px solid var(--pine-bright); outline-offset: 2px; }
+
+.chip {
+  height: 26px;
+  padding: 0 11px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 100px;
+  border: 1px solid var(--border-default);
+  background: var(--bg-surface-raised);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s var(--ease);
+}
+.chip:hover { color: var(--text-primary); border-color: var(--border-strong); }
+.chip.active { background: var(--pine-wash); border-color: var(--pine-bright); color: var(--text-primary); }
+
+/* ---------- arena / scorecards ---------- */
+.arena-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+@media (max-width: 900px) { .arena-grid { grid-template-columns: 1fr; } }
+
+.arena-card {
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  padding: 14px;
+  position: relative;
+  transition: border-color 0.2s var(--ease), transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+.arena-card:hover { border-color: var(--border-strong); transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,0.35); }
+.arena-card.winner { border-color: var(--pine-bright); background: linear-gradient(180deg, var(--pine-wash), var(--bg-surface-raised) 60%); }
+.arena-card.winner:hover { box-shadow: 0 10px 28px rgba(58, 143, 107, 0.2); }
+.arena-card .algo-name { font-family: var(--sans); font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+.arena-card .algo-cost { font-family: var(--display); font-size: 26px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.015em; }
+.arena-card .algo-time { font-size: 11.5px; color: var(--text-tertiary); font-family: var(--mono); margin-top: 4px; }
+
+/* ---------- log ---------- */
+.log-row {
+  border: 1px solid var(--border-subtle);
+  padding: 11px 13px;
+  font-size: 12.5px;
+  background: var(--bg-surface-raised);
+  border-radius: var(--radius-sm);
+  margin-bottom: 7px;
+  border-left: 2px solid var(--pine-bright);
+  transition: border-color 0.2s var(--ease), transform 0.2s var(--ease);
+}
+.log-row:hover { border-color: var(--border-strong); transform: translateX(2px); }
+.log-row .log-ts { color: var(--text-tertiary); font-family: var(--mono); font-size: 10.5px; }
+.log-row .log-narrative { margin-top: 5px; color: var(--text-primary); line-height: 1.5; }
+
+/* ---------- form controls ---------- */
+input[type=text], input[type=number], select, textarea {
+  background: var(--bg-inset);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  min-height: 30px;
+  padding: 6px 10px;
+  font-family: var(--sans);
+  font-size: 13px;
+  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+textarea { min-height: unset; }
+input[type=text]:hover, input[type=number]:hover, select:hover, textarea:hover {
+  border-color: var(--border-strong);
+}
+input[type=text]:focus, input[type=number]:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--pine-bright);
+  box-shadow: 0 0 0 3px var(--pine-wash);
+}
+
+/* ---------- empty / loading states ---------- */
+.empty-state {
+  padding: 32px 20px;
+  text-align: center;
+  background: var(--bg-inset);
+  border-radius: var(--radius);
+  border: 1px dashed var(--border-default);
+}
+.empty-state .empty-title { color: var(--text-secondary); font-weight: 600; font-size: 13px; margin: 0 0 4px 0; }
+.empty-state .empty-body { color: var(--text-tertiary); font-size: 12px; margin: 0; line-height: 1.5; }
+
+@keyframes shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: 200px 0; }
+}
+.skeleton {
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--bg-surface-raised) 0%, var(--bg-surface-hover) 50%, var(--bg-surface-raised) 100%);
+  background-size: 400px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-map {
+  height: 62vh;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-subtle);
+  background:
+    radial-gradient(circle at 30% 40%, var(--bg-surface-hover) 0%, transparent 40%),
+    radial-gradient(circle at 70% 65%, var(--bg-surface-hover) 0%, transparent 35%),
+    linear-gradient(90deg, var(--bg-inset) 0%, var(--bg-surface-raised) 50%, var(--bg-inset) 100%);
+  background-size: 100% 100%, 100% 100%, 400px 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+/* ---------- error banner ---------- */
+.error-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 32px;
+  background: var(--wine-wash);
+  border-bottom: 1px solid var(--wine-bright);
+  color: var(--wine-bright);
+  font-size: 12.5px;
+  font-weight: 500;
+  animation: shell-glide 0.3s var(--ease) both;
+}
+.error-banner-dismiss {
+  background: none;
+  border: none;
+  color: var(--wine-bright);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+/* ---------- dock navigation ---------- */
+.dock-dock {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  z-index: 40;
+}
+
+.dock {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(20, 21, 25, 0.85);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid var(--border-default);
+  border-radius: 20px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+}
+
+.dock-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface-raised);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.2s var(--ease), border-color 0.2s var(--ease), color 0.2s var(--ease);
+}
+.dock-item:hover { color: var(--text-primary); border-color: var(--border-strong); }
+.dock-item.active { color: var(--pine-bright); background: var(--pine-wash); border-color: var(--pine-bright); }
+.dock-item:focus-visible { outline: 2px solid var(--pine-bright); outline-offset: 2px; }
+
+.dock-icon { display: flex; align-items: center; justify-content: center; }
+
+.dock-label {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-default);
+  padding: 4px 9px;
+  border-radius: var(--radius-sm);
+  pointer-events: none;
+}
+
+.dock-dot {
+  position: absolute;
+  bottom: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--pine-bright);
+  box-shadow: 0 0 6px var(--pine-bright);
+}
+
+/* ---------- animated hover background (tabs, cards) ---------- */
+.animated-bg-highlight {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-surface-hover);
+  border-radius: var(--radius-sm);
+  z-index: 0;
+}
+
+/* ---------- misc reset for leaflet popups to match theme ---------- */
+.leaflet-popup-content-wrapper {
+  background: var(--bg-surface-raised);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+}
+.leaflet-popup-tip { background: var(--bg-surface-raised); }
+.leaflet-popup-content { font-size: 12px; line-height: 1.5; margin: 10px 12px; }
+.leaflet-container a.leaflet-popup-close-button { color: var(--text-tertiary); }
